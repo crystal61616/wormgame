@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지렁이 게임</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            margin: 10px 0;
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+        #score {
+            font-family: Arial, sans-serif;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        canvas {
+            border: 1px solid #000;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>지렁이 게임</h1>
+    <div id="score">점수: 0</div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+
+        const boxSize = 20;
+        const rows = canvas.height / boxSize;
+        const cols = canvas.width / boxSize;
+
+        let snake = [{ x: 5, y: 5 }];
+        let direction = 'RIGHT';
+        let food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+        let score = 0;
+
+        document.addEventListener('keydown', changeDirection);
+
+        function changeDirection(event) {
+            const key = event.key;
+            if (key === 'ArrowUp' && direction !== 'DOWN') direction = 'UP';
+            if (key === 'ArrowDown' && direction !== 'UP') direction = 'DOWN';
+            if (key === 'ArrowLeft' && direction !== 'RIGHT') direction = 'LEFT';
+            if (key === 'ArrowRight' && direction !== 'LEFT') direction = 'RIGHT';
+        }
+
+        function drawBox(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+            ctx.strokeStyle = '#000';
+            ctx.strokeRect(x * boxSize, y * boxSize, boxSize, boxSize);
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the snake
+            for (let segment of snake) {
+                drawBox(segment.x, segment.y, 'green');
+            }
+
+            // Draw the food
+            drawBox(food.x, food.y, 'red');
+        }
+
+        function updateGame() {
+            const head = { ...snake[0] };
+
+            if (direction === 'UP') head.y -= 1;
+            if (direction === 'DOWN') head.y += 1;
+            if (direction === 'LEFT') head.x -= 1;
+            if (direction === 'RIGHT') head.x += 1;
+
+            // Check for collisions
+            if (
+                head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows ||
+                snake.some(segment => segment.x === head.x && segment.y === head.y)
+            ) {
+                alert('Game Over!');
+                document.location.reload();
+                return;
+            }
+
+            // Check if food is eaten
+            if (head.x === food.x && head.y === food.y) {
+                food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+                score += 10;
+                scoreElement.textContent = `점수: ${score}`;
+            } else {
+                snake.pop();
+            }
+
+            snake.unshift(head);
+        }
+
+        function gameLoop() {
+            updateGame();
+            drawGame();
+        }
+
+        setInterval(gameLoop, 200);
+    </script>
+</body>
+</html>
